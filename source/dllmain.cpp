@@ -223,15 +223,10 @@ void Init()
     bool bDefaultCameraAngleInTLAD = iniReader.ReadInteger("MISC", "DefaultCameraAngleInTLAD", 0) != 0;
     bool bPedDeathAnimFixFromTBOGT = iniReader.ReadInteger("MISC", "PedDeathAnimFixFromTBOGT", 1) != 0;
     bool bDisableCameraCenteringInCover = iniReader.ReadInteger("MISC", "DisableCameraCenteringInCover", 1) != 0;
+    bool bBikePhoneAnimFix = iniReader.ReadInteger("MISC", "BikePhoneAnimFix", 0) != 0;
     bool bMouseFix = iniReader.ReadInteger("MISC", "MouseFix", 0) != 0;
 
     static float& fTimeStep = **hook::get_pattern<float*>("D8 0D ? ? ? ? 83 C0 30", -9);
-
-    // animation fix for phone interaction on bikes
-    {
-        auto pattern = hook::pattern("83 3D ? ? ? ? 01 0F 8C 1C 01 00 00");
-        injector::MakeNOP(pattern.get(0).get<int>(0), 13, true);
-    }
 
     //fix for lods appearing inside normal models, unless the graphics menu was opened once (draw distances aren't set properly?)
     {
@@ -406,6 +401,13 @@ void Init()
         static constexpr float xmm_0 = FLT_MAX / 2.0f;
         auto pattern = hook::pattern("F3 0F 10 05 ? ? ? ? F3 0F 58 46 ? 89 8C 24");
         injector::WriteMemory(pattern.get_first(4), &xmm_0, true);
+    }
+
+    // animation fix for phone interaction on bikes
+    if (bBikePhoneAnimFix)
+    {
+        auto pattern = hook::pattern("83 3D ? ? ? ? 01 0F 8C 1C 01 00 00");
+        injector::MakeNOP(pattern.get(0).get<int>(0), 13, true);
     }
 
     if (bMouseFix)
